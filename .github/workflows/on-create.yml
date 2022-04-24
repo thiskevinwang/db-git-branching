@@ -26,12 +26,17 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes postgresql-client
-        # run: psql $DB_URL -c "SELECT datname FROM pg_database"
       # - # query the db
+      #    run: psql $DB_URL -c "SELECT datname FROM pg_database"
+      - # set env DB_NAME
+        # 1. replace dash (-) & forward slash (/) with underscore (_)
+        # 2. truncate to first 15 chars
+        # 3. prefix with "git_"
+        name: Set DB_NAME env var
+        run: |
+          echo "DB_NAME=git_$(echo $GITHUB_REF_NAME | sed -r 's/[-/]+/_/g'| cut -c 1-15)" >> $GITHUB_ENV
+          echo ${DB_NAME}
       - # create a database
         name: Create Database
         # GITHUB_REF_NAME is not available in `act`
-        run: |
-          echo Creating DB: git_${GITHUB_SHA:0:7}
-          echo ${GITHUB_REF_NAME} | sed -r 's/[-/]+/_/g'
-        # run: psql $DB_URL -c "CREATE DATABASE git_${GITHUB_SHA:0:7}"
+        run: psql $DB_URL -c "CREATE DATABASE ${DB_NAME}"
