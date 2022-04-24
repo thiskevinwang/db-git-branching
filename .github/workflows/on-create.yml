@@ -15,14 +15,7 @@ jobs:
         # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
         run: echo ${GITHUB_SHA:0:7}
       - run: echo ${GITHUB_ACTIONS}
-      - run: |
-          echo "###################"
-          echo Event name: ${GITHUB_EVENT_NAME}
-          echo "###################"
-      - run: |
-          echo "###################"
-          echo "Job name: ${GITHUB_JOB}"
-          echo "###################"
+      - run: echo ${GITHUB_REF_NAME}
   db:
     runs-on: ubuntu-latest
     env:
@@ -33,8 +26,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes postgresql-client
-      - # query the db
-        run: psql $DB_URL -c "SELECT datname FROM pg_database"
+        # run: psql $DB_URL -c "SELECT datname FROM pg_database"
+      # - # query the db
       - # create a database
         name: Create Database
-        run: psql $DB_URL -c "CREATE DATABASE git_${GITHUB_SHA:0:7}"
+        # GITHUB_REF_NAME is not available in `act`
+        run: |
+          echo Creating DB: git_${GITHUB_SHA:0:7}
+          echo ${GITHUB_REF_NAME} | sed -r 's/[-/]+/_/g'
+        # run: psql $DB_URL -c "CREATE DATABASE git_${GITHUB_SHA:0:7}"
