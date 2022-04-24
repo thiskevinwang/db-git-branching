@@ -1,3 +1,5 @@
+# Test this workflow with
+# act create -W ./.github/workflows/on-create.yml
 name: On Create
 on:
   create:
@@ -6,5 +8,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: echo ${{ github.sha }}
-      - run: echo ${GITHUB_SHA:0:7}
+      - # Contexts
+        # https://docs.github.com/en/actions/learn-github-actions/contexts#about-contexts
+        run: echo ${{ github.sha }}
+      - # Default environment variables
+        # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
+        run: echo ${GITHUB_SHA:0:7}
+      - run: echo ${GITHUB_ACTIONS}
+      - run: |
+          echo "###################"
+          echo Event name: ${GITHUB_EVENT_NAME}
+          echo "###################"
+      - run: |
+          echo "###################"
+          echo "Job name: ${GITHUB_JOB}"
+          echo "###################"
+  db:
+    runs-on: ubuntu-latest
+    env:
+      DB_URL: postgresql://postgres:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}
+    steps:
+      - # Install `psql`
+        run: |
+          apt-get update
+          apt-get install --yes postgresql-client
+      - # query the db
+        run: psql $DB_URL -c "SELECT datname FROM pg_database"
+      - # create a database
+        name: Create Database
+        run: psql $DB_URL -c "CREATE DATABASE git_${GITHUB_SHA:0:7}"
